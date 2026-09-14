@@ -1,5 +1,5 @@
 import { StyleManager } from '../ui.js';
-import { flyToAustin } from '../camera.js';
+import { flyToNSW } from '../camera.js';
 import { initCockpitCloudEffects } from '../cockpitCloudEffects.js';
 
 /** Construct the existing controls and camera presentation. */
@@ -26,8 +26,8 @@ export function createStandaloneControls({
 
   // If no share link state, do default fly-to Austin
   if (!styleManager.hasShareState) {
-    loaderStatus.textContent = 'Flying to Austin, TX...';
-    defer(flyToAustin(viewer));
+    loaderStatus.textContent = 'Flying to New South Wales...';
+    defer(flyToNSW(viewer));
   } else {
     loaderStatus.textContent = 'Restoring shared view...';
   }
