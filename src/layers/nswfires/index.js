@@ -31,7 +31,9 @@ export function createNswFiresLayer({ source, credits } = {}) {
 
   const layer = {
     id: 'nsw-fires',
-    name: 'NSW Fires (RFS)',
+    // Bilingual row label: the original panel is English-only; new AU layers
+    // carry a Chinese gloss for the bilingual audience.
+    name: 'NSW Fires (RFS) 新州火警',
     icon: '🔥',
     source: 'NSW RFS',
     updateInterval: 600000,

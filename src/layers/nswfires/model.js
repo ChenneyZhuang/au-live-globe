@@ -126,15 +126,15 @@ export function normalizeNswFiresSnapshot(payload) {
   return rows;
 }
 
-/** One-line incident summary for the entity info box. */
+/** One-line incident summary for the entity info box (bilingual labels). */
 export function incidentDescription(row) {
   const link = row.link
-    ? `<p><a href="${row.link}" target="_blank" rel="noopener">Fires Near Me</a></p>`
+    ? `<p><a href="${row.link}" target="_blank" rel="noopener">Fires Near Me 火灾地图</a></p>`
     : '';
   return [
     `<h3>${row.title}</h3>`,
-    `<p><strong>Level:</strong> ${row.category || '—'}</p>`,
-    row.pubDate ? `<p><strong>Updated:</strong> ${row.pubDate}</p>` : '',
+    `<p><strong>Level 等级:</strong> ${row.category || '—'}</p>`,
+    row.pubDate ? `<p><strong>Updated 更新:</strong> ${row.pubDate}</p>` : '',
     row.description ? `<p>${row.description}</p>` : '',
     link,
   ]
