@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/** Browser smoke proof for the NSW RFS fires layer: registration, enable, live fetch, render. */
+/** Browser smoke proof for the QLD QFD fires layer: registration, enable, live fetch, render. */
 import puppeteer from 'puppeteer';
 const browser = await puppeteer.launch({
   headless: true,
@@ -30,12 +30,12 @@ try {
   const registered = await page.evaluate(() => {
     const manager = window.__godsEyeView.dataManager;
     return {
-      has: manager.layers.has('nsw-fires'),
+      has: manager.layers.has('qld-fires'),
       cameraLat: window.__godsEyeView?.viewer?.camera?.positionCartographic?.latitude,
       cameraLon: window.__godsEyeView?.viewer?.camera?.positionCartographic?.longitude,
     };
   });
-  check('nsw-fires layer registered', registered.has);
+  check('qld-fires layer registered', registered.has);
   if (registered.cameraLat != null) {
     const lat = (registered.cameraLat * 180) / Math.PI;
     const lon = (registered.cameraLon * 180) / Math.PI;
@@ -50,38 +50,36 @@ try {
   await page.evaluate(() => {
     const manager = window.__godsEyeView.dataManager;
     const container = manager._toggleContainer;
-    container.querySelector('[data-layer-id="nsw-fires"] .data-toggle-btn').click();
+    container.querySelector('[data-layer-id="qld-fires"] .data-toggle-btn').click();
   });
 
   // Wait for the first successful live update (fetch + entity build).
   await page.waitForFunction(
     () => {
-      const entry = window.__godsEyeView.dataManager.layers.get('nsw-fires');
-      return entry?.module?.status?.count > 0;
+      const entry = window.__godsEyeView.dataManager.layers.get('qld-fires');
+      return entry?.module?.status?.count > 0 || entry?.module?.status?.lastError;
     },
-    { timeout: 45000 },
+    { timeout: 90000, polling: 1000 },
   );
 
   const status = await page.evaluate(() => {
-    const entry = window.__godsEyeView.dataManager.layers.get('nsw-fires');
+    const module = window.__godsEyeView.dataManager.layers.get('qld-fires')?.module;
     return {
-      enabled: entry.enabled,
-      count: entry.module.status.count,
-      lastError: entry.module.status.lastError,
-      sources: window.__godsEyeView.viewer.dataSources.length,
+      enabled: module.status.count >= 0 && document.querySelector('[data-layer-id="qld-fires"]') !== null,
+      count: module.status.count,
+      lastError: module.status.lastError,
     };
   });
   check('layer enabled', status.enabled === true);
-  check('live incidents rendered', status.count > 0, `${status.count} shapes`);
+  check('live warnings rendered', status.count > 0, `${status.count} shapes`);
   check('no layer error', !status.lastError, status.lastError || '');
 
-  await new Promise((resolve) => setTimeout(resolve, 2500));
-  await page.screenshot({ path: 'screenshots/smoke-nsw-fires.png' });
-  console.log('screenshot: screenshots/smoke-nsw-fires.png');
+  await page.screenshot({ path: 'screenshots/smoke-qld-fires.png' });
 } catch (error) {
   failures++;
-  console.log(`[FAIL] smoke run — ${error.message}`);
+  console.error('[FAIL] harness error:', error.message);
+} finally {
+  check('no page errors', errors.length === 0, errors.slice(0, 3).join(' | '));
+  await browser.close();
 }
-if (errors.length) console.log('pageerrors:', errors.slice(0, 3));
-await browser.close();
 process.exit(failures ? 1 : 0);

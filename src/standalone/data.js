@@ -13,6 +13,7 @@ import aisLiveVesselsLayer from '../data/aisLiveVessels.js';
 import militaryInstallationsLayer from '../data/militaryInstallations.js';
 import militaryAwarenessLayer from '../data/militaryAwareness.js';
 import nswFiresLayer from '../data/nswfires.js';
+import qldFiresLayer from '../data/qldfires.js';
 import localDataLayers from '../data/localLayers.js';
 import { LAYER_STATE_REGISTRY } from '../data/layerState.js';
 
@@ -50,6 +51,7 @@ export function createStandaloneData({
   dataManager.register(militaryAwarenessLayer);
   militaryAwarenessLayer.attachDataManager(dataManager);
   dataManager.register(nswFiresLayer);
+  dataManager.register(qldFiresLayer);
   for (const layer of localDataLayers) {
     dataManager.register(layer);
   }
