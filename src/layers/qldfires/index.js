@@ -106,6 +106,9 @@ export function createQldFiresLayer({ source, credits } = {}) {
                 backgroundColor: Cesium.Color.fromCssColorString('#1b1b1b').withAlpha(0.72),
                 pixelOffset: new Cesium.Cartesian2(0, -16),
                 scale: 0.92,
+                // Points stay visible at cruise altitude; text labels only
+                // appear once the camera is close enough to read them.
+                distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 1_000_000),
               },
             });
           } else {
