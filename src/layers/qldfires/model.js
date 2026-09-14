@@ -38,18 +38,18 @@ const SEVERITY_BY_LEVEL = new Map([
 export const SEVERITY_COLORS = {
   'emergency-warning': { red: 1.0, green: 0.1, blue: 0.1, alpha: 0.5 },
   'watch-and-act': { red: 1.0, green: 0.55, blue: 0.0, alpha: 0.5 },
-  'advice': { red: 1.0, green: 0.9, blue: 0.2, alpha: 0.5 },
-  'information': { red: 0.55, green: 0.75, blue: 1.0, alpha: 0.45 },
-  'preparation': { red: 0.4, green: 0.8, blue: 0.55, alpha: 0.45 },
+  advice: { red: 1.0, green: 0.9, blue: 0.2, alpha: 0.5 },
+  information: { red: 0.55, green: 0.75, blue: 1.0, alpha: 0.45 },
+  preparation: { red: 0.4, green: 0.8, blue: 0.55, alpha: 0.45 },
   'not-applicable': { red: 0.7, green: 0.7, blue: 0.7, alpha: 0.5 },
 };
 
 const SEVERITY_PIXEL_SIZE = {
   'emergency-warning': 14,
   'watch-and-act': 12,
-  'advice': 10,
-  'information': 8,
-  'preparation': 8,
+  advice: 10,
+  information: 8,
+  preparation: 8,
   'not-applicable': 8,
 };
 
@@ -78,7 +78,8 @@ function collectGeometries(geometry, out) {
       for (const coords of geometry.coordinates || []) out.points.push(coords);
       break;
     case 'Polygon':
-      if (Array.isArray(geometry.coordinates?.[0])) out.polygons.push(geometry.coordinates);
+      if (Array.isArray(geometry.coordinates?.[0]))
+        out.polygons.push(geometry.coordinates);
       break;
     case 'MultiPolygon':
       for (const polygon of geometry.coordinates || []) {
@@ -96,16 +97,22 @@ function collectGeometries(geometry, out) {
  * payload is not a FeatureCollection.
  */
 export function normalizeQldFiresSnapshot(payload) {
-  if (!payload || payload.type !== 'FeatureCollection' || !Array.isArray(payload.features)) {
+  if (
+    !payload ||
+    payload.type !== 'FeatureCollection' ||
+    !Array.isArray(payload.features)
+  ) {
     return null;
   }
   const rows = [];
   for (const feature of payload.features) {
     const props = feature?.properties || {};
-    const title = typeof props.WarningTitle === 'string' && props.WarningTitle
-      ? props.WarningTitle
-      : 'Untitled warning';
-    const level = typeof props.WarningLevel === 'string' ? props.WarningLevel.trim() : '';
+    const title =
+      typeof props.WarningTitle === 'string' && props.WarningTitle
+        ? props.WarningTitle
+        : 'Untitled warning';
+    const level =
+      typeof props.WarningLevel === 'string' ? props.WarningLevel.trim() : '';
     const text = typeof props.WarningText === 'string' ? props.WarningText : '';
     const normalizedLevel = level.toLowerCase();
     let severity = SEVERITY_BY_LEVEL.get(normalizedLevel) || 'not-applicable';
@@ -163,7 +170,9 @@ export function incidentDescription(row) {
   return [
     `<h3>${row.title}</h3>`,
     `<p><strong>Level 等级:</strong> ${row.category || '—'}</p>`,
-    row.updatedIso ? `<p><strong>Updated 更新:</strong> ${row.updatedIso}</p>` : '',
+    row.updatedIso
+      ? `<p><strong>Updated 更新:</strong> ${row.updatedIso}</p>`
+      : '',
     row.description ? `<p>${row.description}</p>` : '',
     link,
   ]

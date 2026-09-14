@@ -15,24 +15,34 @@ let failures = 0;
 const errors = [];
 page.on('pageerror', (error) => errors.push(error.message));
 const check = (name, passed, detail = '') => {
-  console.log(`[${passed ? 'PASS' : 'FAIL'}] ${name}${detail ? ` — ${detail}` : ''}`);
+  console.log(
+    `[${passed ? 'PASS' : 'FAIL'}] ${name}${detail ? ` — ${detail}` : ''}`,
+  );
   if (!passed) failures++;
 };
 try {
   await page.setViewport({ width: 1440, height: 900 });
-  await page.goto(`${process.env.QA_BASE_URL || 'http://localhost:4173'}/?welcome=0`, {
-    waitUntil: 'domcontentloaded',
-  });
-  await page.waitForFunction(() => window.__godsEyeView?.dataManager?._layerPanel, {
-    timeout: 60000,
-  });
+  await page.goto(
+    `${process.env.QA_BASE_URL || 'http://localhost:4173'}/?welcome=0`,
+    {
+      waitUntil: 'domcontentloaded',
+    },
+  );
+  await page.waitForFunction(
+    () => window.__godsEyeView?.dataManager?._layerPanel,
+    {
+      timeout: 60000,
+    },
+  );
 
   const registered = await page.evaluate(() => {
     const manager = window.__godsEyeView.dataManager;
     return {
       has: manager.layers.has('qld-fires'),
-      cameraLat: window.__godsEyeView?.viewer?.camera?.positionCartographic?.latitude,
-      cameraLon: window.__godsEyeView?.viewer?.camera?.positionCartographic?.longitude,
+      cameraLat:
+        window.__godsEyeView?.viewer?.camera?.positionCartographic?.latitude,
+      cameraLon:
+        window.__godsEyeView?.viewer?.camera?.positionCartographic?.longitude,
     };
   });
   check('qld-fires layer registered', registered.has);
@@ -50,22 +60,29 @@ try {
   await page.evaluate(() => {
     const manager = window.__godsEyeView.dataManager;
     const container = manager._toggleContainer;
-    container.querySelector('[data-layer-id="qld-fires"] .data-toggle-btn').click();
+    container
+      .querySelector('[data-layer-id="qld-fires"] .data-toggle-btn')
+      .click();
   });
 
   // Wait for the first successful live update (fetch + entity build).
   await page.waitForFunction(
     () => {
       const entry = window.__godsEyeView.dataManager.layers.get('qld-fires');
-      return entry?.module?.status?.count > 0 || entry?.module?.status?.lastError;
+      return (
+        entry?.module?.status?.count > 0 || entry?.module?.status?.lastError
+      );
     },
     { timeout: 90000, polling: 1000 },
   );
 
   const status = await page.evaluate(() => {
-    const module = window.__godsEyeView.dataManager.layers.get('qld-fires')?.module;
+    const module =
+      window.__godsEyeView.dataManager.layers.get('qld-fires')?.module;
     return {
-      enabled: module.status.count >= 0 && document.querySelector('[data-layer-id="qld-fires"]') !== null,
+      enabled:
+        module.status.count >= 0 &&
+        document.querySelector('[data-layer-id="qld-fires"]') !== null,
       count: module.status.count,
       lastError: module.status.lastError,
     };

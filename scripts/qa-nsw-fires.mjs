@@ -15,24 +15,34 @@ let failures = 0;
 const errors = [];
 page.on('pageerror', (error) => errors.push(error.message));
 const check = (name, passed, detail = '') => {
-  console.log(`[${passed ? 'PASS' : 'FAIL'}] ${name}${detail ? ` — ${detail}` : ''}`);
+  console.log(
+    `[${passed ? 'PASS' : 'FAIL'}] ${name}${detail ? ` — ${detail}` : ''}`,
+  );
   if (!passed) failures++;
 };
 try {
   await page.setViewport({ width: 1440, height: 900 });
-  await page.goto(`${process.env.QA_BASE_URL || 'http://localhost:4173'}/?welcome=0`, {
-    waitUntil: 'domcontentloaded',
-  });
-  await page.waitForFunction(() => window.__godsEyeView?.dataManager?._layerPanel, {
-    timeout: 60000,
-  });
+  await page.goto(
+    `${process.env.QA_BASE_URL || 'http://localhost:4173'}/?welcome=0`,
+    {
+      waitUntil: 'domcontentloaded',
+    },
+  );
+  await page.waitForFunction(
+    () => window.__godsEyeView?.dataManager?._layerPanel,
+    {
+      timeout: 60000,
+    },
+  );
 
   const registered = await page.evaluate(() => {
     const manager = window.__godsEyeView.dataManager;
     return {
       has: manager.layers.has('nsw-fires'),
-      cameraLat: window.__godsEyeView?.viewer?.camera?.positionCartographic?.latitude,
-      cameraLon: window.__godsEyeView?.viewer?.camera?.positionCartographic?.longitude,
+      cameraLat:
+        window.__godsEyeView?.viewer?.camera?.positionCartographic?.latitude,
+      cameraLon:
+        window.__godsEyeView?.viewer?.camera?.positionCartographic?.longitude,
     };
   });
   check('nsw-fires layer registered', registered.has);
@@ -50,7 +60,9 @@ try {
   await page.evaluate(() => {
     const manager = window.__godsEyeView.dataManager;
     const container = manager._toggleContainer;
-    container.querySelector('[data-layer-id="nsw-fires"] .data-toggle-btn').click();
+    container
+      .querySelector('[data-layer-id="nsw-fires"] .data-toggle-btn')
+      .click();
   });
 
   // Wait for the first successful live update (fetch + entity build).

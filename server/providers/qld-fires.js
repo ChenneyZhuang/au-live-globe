@@ -34,7 +34,10 @@ export function qldFiresProxy() {
     const body = await res.text();
     // Validate before caching: never serve a non-GeoJSON error page onward.
     const parsed = JSON.parse(body);
-    if (parsed?.type !== 'FeatureCollection' || !Array.isArray(parsed.features)) {
+    if (
+      parsed?.type !== 'FeatureCollection' ||
+      !Array.isArray(parsed.features)
+    ) {
       throw new Error('upstream payload is not a FeatureCollection');
     }
     return { at: Date.now(), body };
@@ -78,7 +81,9 @@ export function qldFiresProxy() {
         } else if (mem) {
           sendJson(200, JSON.parse(mem.body)); // upstream down — stale beats empty
         } else {
-          sendJson(502, { error: 'qld fires fetch failed and no cache available' });
+          sendJson(502, {
+            error: 'qld fires fetch failed and no cache available',
+          });
         }
       } catch (err) {
         console.warn('[qld-fires-proxy] error:', err?.message || err);

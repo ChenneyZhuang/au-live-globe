@@ -25,16 +25,24 @@ export async function onRequest() {
   try {
     parsed = JSON.parse(body);
   } catch {
-    return new Response(JSON.stringify({ error: 'qld fires upstream returned invalid JSON' }), {
-      status: 502,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return new Response(
+      JSON.stringify({ error: 'qld fires upstream returned invalid JSON' }),
+      {
+        status: 502,
+        headers: { 'Content-Type': 'application/json' },
+      },
+    );
   }
   if (parsed?.type !== 'FeatureCollection' || !Array.isArray(parsed.features)) {
-    return new Response(JSON.stringify({ error: 'qld fires upstream is not a FeatureCollection' }), {
-      status: 502,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return new Response(
+      JSON.stringify({
+        error: 'qld fires upstream is not a FeatureCollection',
+      }),
+      {
+        status: 502,
+        headers: { 'Content-Type': 'application/json' },
+      },
+    );
   }
   return new Response(body, {
     status: 200,

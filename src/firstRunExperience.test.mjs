@@ -429,26 +429,25 @@ test('Environmental enables BOTH its feeds and pulls out to the globe', async ()
   const spy = missionSpy();
   const outcome = await runFirstRunChoice('environmental', spy.deps);
   assert.equal(outcome.ok, true);
-  assert.deepEqual(spy.calls.layerIds, ['earthquakes', 'local-firms']);
+  assert.deepEqual(spy.calls.layerIds, ['earthquakes', 'nsw-fires', 'qld-fires']);
   assert.equal(spy.calls.globeFlights, 1);
 });
 
 test('the tile is the FULLY CONFIGURED experience: quakes and fires together', () => {
-  // Owner ruling, 2026-08-23: the launcher optimizes for the configured app, so
-  // ENVIRONMENTAL means live USGS earthquakes AND NASA FIRMS active fires.
+  // Fork adaptation (2026-09-14): ENVIRONMENTAL means live USGS earthquakes
+  // AND both keyless AU bushfire feeds (NSW RFS + QLD QFD). NASA FIRMS was
+  // dropped from the preset — keyless it always showed KEY REQUIRED, which
+  // broke the tile's promise; the AU feeds deliver with no key.
   const environmental = FIRST_RUN_MISSIONS.environmental;
-  assert.deepEqual(environmental.layerIds, ['earthquakes', 'local-firms']);
+  assert.deepEqual(environmental.layerIds, ['earthquakes', 'nsw-fires', 'qld-fires']);
 
-  // Keyless, the honest surface is the LAYER ROW ("KEY REQUIRED"), which the
-  // FIRMS layer already reports. The misleading part is the GLOBAL chip folding
-  // that row into LOAD FAILED — a defect in the shared state machine, ledgered
-  // post-launch, and the note must stay where the next editor will read it
-  // rather than being re-discovered as a launcher bug.
+  // Keyless honesty note (upstream): the honest surface is the LAYER ROW.
+  // That contract is unchanged; the preset simply no longer includes a
+  // layer that keyless visitors could never load.
   const module = fs.readFileSync(new URL('./firstRunExperience.js', import.meta.url), 'utf8');
   const table = module.slice(module.indexOf('  environmental: Object.freeze({'), module.indexOf('  explore:'));
-  assert.match(table, /KEY REQUIRED/);
-  assert.match(table, /src\/loadingFeedback\.js/);
-  assert.match(table, /LEDGERED post-launch/);
+  assert.match(table, /keyless/);
+  assert.match(table, /MAP_KEY/);
 });
 
 test('every visitor gets the same tile — there is no degraded keyless variant', async () => {
@@ -459,7 +458,7 @@ test('every visitor gets the same tile — there is no degraded keyless variant'
   const outcome = await runFirstRunChoice('environmental', spy.deps);
   assert.equal(outcome.ok, true);
   assert.deepEqual(outcome.failedLayerIds, []);
-  assert.deepEqual(spy.calls.layerIds, ['earthquakes', 'local-firms']);
+  assert.deepEqual(spy.calls.layerIds, ['earthquakes', 'nsw-fires', 'qld-fires']);
   const module = fs.readFileSync(new URL('./firstRunExperience.js', import.meta.url), 'utf8');
   assert.doesNotMatch(
     module.slice(module.indexOf('export async function runFirstRunChoice')),
@@ -658,13 +657,14 @@ test('the DISPLAY rail starts collapsed on a first run, and a stored choice wins
 test('the voice TOOL SCHEMA matches the pinned release — the mission mapping is instructions only', () => {
   // ALPR deliberately adds its ID to the two layer menus and visibility aliases.
   // Canonical serialization pins every tool name, description, property and
-  // ordering while allowing source formatting. Derived from the unchanged
-  // release schema before formatting (the previous source-byte pin passed).
+  // ordering while allowing source formatting. Re-pinned 2026-09-14 for the
+  // fork's AU layer additions to the set_layer_visibility / show_data_layers
+  // enums (nsw-fires, qld-fires) — deliberate, reviewed schema change.
   const block = JSON.stringify(GEV_REALTIME_TOOLS);
-  assert.equal(block.length, 26208, 'serialized tool schema length drifted');
+  assert.equal(block.length, 26328, 'serialized tool schema length drifted');
   assert.equal(
     crypto.createHash('sha256').update(block).digest('hex'),
-    '135d4ec66239777da34a8476cdf8348574421d7afd2e981cc3490909a5bc8686',
+    'f7a290bbfc4071368edcba5ecd9bf1e38bacbf44f4c876e94f7d307fe5ef39ff',
     'the first-run missions must ride EXISTING tools: no schema edit, no cache bust',
   );
   const instructions = fs.readFileSync(new URL('../server/providers/openai/instructions.js', import.meta.url), 'utf8');
@@ -681,7 +681,8 @@ test('the voice TOOL SCHEMA matches the pinned release — the mission mapping i
   const mapping = instructions.slice(instructions.indexOf('NAMED VIEWS are shorthand'));
   const paragraph = mapping.slice(0, mapping.indexOf("',\n"));
   for (const layerId of [
-    'local-datacenters', 'local-dams', 'telegeography-submarine-cables', 'local-firms', 'earthquakes',
+    'local-datacenters', 'local-dams', 'telegeography-submarine-cables', 'earthquakes',
+    'nsw-fires', 'qld-fires',
   ]) {
     assert.ok(paragraph.includes(layerId), `mapping must name the existing ${layerId} enum value`);
   }

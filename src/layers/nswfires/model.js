@@ -24,7 +24,7 @@ const SEVERITY_BY_CATEGORY = new Map([
 export const SEVERITY_COLORS = {
   'emergency-warning': { red: 1.0, green: 0.1, blue: 0.1, alpha: 0.5 },
   'watch-and-act': { red: 1.0, green: 0.55, blue: 0.0, alpha: 0.5 },
-  'advice': { red: 1.0, green: 0.9, blue: 0.2, alpha: 0.5 },
+  advice: { red: 1.0, green: 0.9, blue: 0.2, alpha: 0.5 },
   'planned-burn': { red: 0.55, green: 0.4, blue: 0.95, alpha: 0.5 },
   'not-applicable': { red: 0.7, green: 0.7, blue: 0.7, alpha: 0.5 },
 };
@@ -32,7 +32,7 @@ export const SEVERITY_COLORS = {
 const SEVERITY_PIXEL_SIZE = {
   'emergency-warning': 14,
   'watch-and-act': 12,
-  'advice': 10,
+  advice: 10,
   'planned-burn': 9,
   'not-applicable': 8,
 };
@@ -47,7 +47,8 @@ export function severityPixelSize(severity) {
 
 /** Stable per-incident id from the guid URL (`…/incidents/676231` → `676231`). */
 function stableIdFromGuid(guid, fallback) {
-  const match = typeof guid === 'string' ? guid.match(/\/incidents\/(\d+)/) : null;
+  const match =
+    typeof guid === 'string' ? guid.match(/\/incidents\/(\d+)/) : null;
   return match ? match[1] : fallback;
 }
 
@@ -55,7 +56,8 @@ function collectGeometries(geometry, out) {
   if (!geometry || typeof geometry.type !== 'string') return;
   switch (geometry.type) {
     case 'GeometryCollection':
-      for (const nested of geometry.geometries || []) collectGeometries(nested, out);
+      for (const nested of geometry.geometries || [])
+        collectGeometries(nested, out);
       break;
     case 'Point':
       out.points.push(geometry.coordinates);
@@ -67,7 +69,8 @@ function collectGeometries(geometry, out) {
       out.polygons.push(geometry.coordinates);
       break;
     case 'MultiPolygon':
-      for (const polygon of geometry.coordinates || []) out.polygons.push(polygon);
+      for (const polygon of geometry.coordinates || [])
+        out.polygons.push(polygon);
       break;
     default:
       break; // LineString et al. carry no fire-area meaning for v1.
@@ -80,16 +83,25 @@ function collectGeometries(geometry, out) {
  * payload is not a FeatureCollection.
  */
 export function normalizeNswFiresSnapshot(payload) {
-  if (!payload || payload.type !== 'FeatureCollection' || !Array.isArray(payload.features)) {
+  if (
+    !payload ||
+    payload.type !== 'FeatureCollection' ||
+    !Array.isArray(payload.features)
+  ) {
     return null;
   }
   const rows = [];
   for (const feature of payload.features) {
     const props = feature?.properties || {};
-    const title = typeof props.title === 'string' ? props.title : 'Untitled incident';
+    const title =
+      typeof props.title === 'string' ? props.title : 'Untitled incident';
     const category = typeof props.category === 'string' ? props.category : '';
-    const severity = SEVERITY_BY_CATEGORY.get(category.toLowerCase()) || 'not-applicable';
-    const stableId = stableIdFromGuid(props.guid, `${title}|${props.pubDate || ''}`);
+    const severity =
+      SEVERITY_BY_CATEGORY.get(category.toLowerCase()) || 'not-applicable';
+    const stableId = stableIdFromGuid(
+      props.guid,
+      `${title}|${props.pubDate || ''}`,
+    );
     const geometries = { points: [], polygons: [] };
     collectGeometries(feature?.geometry, geometries);
     for (const [lon, lat] of geometries.points) {

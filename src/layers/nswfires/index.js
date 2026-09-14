@@ -12,7 +12,7 @@ export { createNswFiresSource } from './source.js';
 const SEVERITY_OUTLINE = {
   'emergency-warning': Cesium.Color.RED.withAlpha(1.0),
   'watch-and-act': Cesium.Color.ORANGE.withAlpha(1.0),
-  'advice': Cesium.Color.YELLOW.withAlpha(0.95),
+  advice: Cesium.Color.YELLOW.withAlpha(0.95),
   'planned-burn': Cesium.Color.fromCssColorString('#8c6bff').withAlpha(0.95),
   'not-applicable': Cesium.Color.GRAY.withAlpha(0.95),
 };
@@ -78,8 +78,15 @@ export function createNswFiresLayer({ source, credits } = {}) {
         let count = 0;
         for (const row of rows) {
           const color = severityColor(row.severity);
-          const fill = new Cesium.Color(color.red, color.green, color.blue, color.alpha);
-          const outline = SEVERITY_OUTLINE[row.severity] || SEVERITY_OUTLINE['not-applicable'];
+          const fill = new Cesium.Color(
+            color.red,
+            color.green,
+            color.blue,
+            color.alpha,
+          );
+          const outline =
+            SEVERITY_OUTLINE[row.severity] ||
+            SEVERITY_OUTLINE['not-applicable'];
           const entityId = `nsw-fire:${row.stableId}:${row.kind}:${count}`;
           const common = {
             id: entityId,
@@ -101,12 +108,16 @@ export function createNswFiresLayer({ source, credits } = {}) {
                 font: '12px sans-serif',
                 fillColor: Cesium.Color.WHITE,
                 showBackground: true,
-                backgroundColor: Cesium.Color.fromCssColorString('#1b1b1b').withAlpha(0.72),
+                backgroundColor:
+                  Cesium.Color.fromCssColorString('#1b1b1b').withAlpha(0.72),
                 pixelOffset: new Cesium.Cartesian2(0, -16),
                 scale: 0.92,
                 // Points stay visible at cruise altitude; text labels only
                 // appear once the camera is close enough to read them.
-                distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 1_000_000),
+                distanceDisplayCondition: new Cesium.DistanceDisplayCondition(
+                  0,
+                  1_000_000,
+                ),
               },
             });
           } else {
@@ -114,7 +125,9 @@ export function createNswFiresLayer({ source, credits } = {}) {
               ...common,
               polygon: {
                 hierarchy: new Cesium.PolygonHierarchy(
-                  row.ring.map(([lon, lat]) => Cesium.Cartesian3.fromDegrees(lon, lat)),
+                  row.ring.map(([lon, lat]) =>
+                    Cesium.Cartesian3.fromDegrees(lon, lat),
+                  ),
                 ),
                 material: fill,
                 outline: true,
